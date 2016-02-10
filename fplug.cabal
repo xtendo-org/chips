@@ -17,9 +17,11 @@ library
   hs-source-dirs:   src
   exposed-modules:  Lib
   other-modules:
+    Args,
     Config
   build-depends:
     aeson >= 0.9 && < 0.10,
+    cmdargs >= 0.10.13 && < 0.11,
     text >= 1.2.2 && < 2,
     yaml >= 0.8.15.2 && < 0.9,
     base >= 4.7 && < 5
