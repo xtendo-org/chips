@@ -23,6 +23,8 @@ library
     Config
   build-depends:
     aeson >= 0.9 && < 0.10,
+    base64-bytestring >= 1.0.0.1 && < 2,
+    bytestring >= 0.10.6 && < 0.11,
     cmdargs >= 0.10.13 && < 0.11,
     directory >= 1.2.2 && < 2,
     filepath >= 1.4 && < 2,
