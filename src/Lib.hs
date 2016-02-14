@@ -9,6 +9,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Base64.URL as B64
 
@@ -16,6 +17,7 @@ import System.Exit
 import System.Directory
 import System.Process
 import System.IO
+import System.FilePath
 
 import qualified Config as C
 import Args
@@ -48,7 +50,7 @@ runCmd session cmd = case cmd of
 
 runInstall :: Session -> IO ()
 runInstall Session{..} = do
-    conf <- C.decode (fplugPath <> "/fplug.yaml")
+    conf <- C.decode (fplugPath </> "fplug.yaml")
     pluginsExist <- doesDirectoryExist pluginsDir
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
@@ -57,20 +59,22 @@ runInstall Session{..} = do
         pluginDirExist <- if not pluginsExist
             then return False
             else doesDirectoryExist $ B.unpack dir
-        unless pluginDirExist $ do
-            B.putStr $ mconcat ["Installing ", dir, "... "]
+        if pluginDirExist then
+            bPutStr $ B.byteString dir <> " is already installed.\n"
+        else do
+            bPutStr $ "Installing " <> B.byteString dir <> "... "
             cloned <- silentCall
                 "git" ["clone", "--depth=1", T.unpack url, B.unpack dir]
             case cloned of
                 ExitSuccess -> B.putStrLn "Done."
                 _ -> B.putStrLn "Fail."
-        doesFileExist (B.unpack $ dir <> "/init.fish") >>= \case
+        doesFileExist (B.unpack dir </> "init.fish") >>= \case
             True -> return (Plugin dir)
             False -> return Theme
-    withFile (fplugPath <> "/build.fish") WriteMode $ \handle ->
+    withFile (fplugPath </> "build.fish") WriteMode $ \handle ->
         B.hPutBuilder handle $ mconcat $ sourcePaths initPaths
   where
-    pluginsDir = fplugPath <> "/plugins"
+    pluginsDir = fplugPath </> "plugins"
     dirB url = maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8
         (gitDir url)
     sourcePaths [] = []
@@ -80,10 +84,8 @@ runInstall Session{..} = do
       where
         pathExpand dir = mconcat
             [ "source "
-            , B.stringUtf8 pluginsDir
-            , "/"
-            , B.byteString dir
-            , "/init.fish\n"
+            , B.stringUtf8 $ pluginsDir </> B.unpack dir </> "init.fish"
+            , "\n"
             ]
 
 -- utility
@@ -96,3 +98,6 @@ silentCall cmd args = do
         , std_err = CreatePipe
         }
     waitForProcess procH
+
+bPutStr :: Builder -> IO ()
+bPutStr = B.hPutBuilder stdout
