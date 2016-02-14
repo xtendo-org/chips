@@ -7,16 +7,21 @@ import Control.Monad
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Base64.URL as B64
 
 import System.Exit
 import System.Directory
 import System.Process
+import System.IO
 
 import qualified Config as C
 import Args
 import Git
+
+data Plugin = Plugin ByteString | Theme
 
 -- Session configuration container. In other words,
 -- things that are set up in the beginning of execution and hardly change
@@ -47,7 +52,7 @@ runInstall Session{..} = do
     pluginsExist <- doesDirectoryExist pluginsDir
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
-    forM_ (C.gitURLs conf) $ \ url -> do
+    initPaths <- forM (C.gitURLs conf) $ \ url -> do
         let dir = dirB url
         pluginDirExist <- if not pluginsExist
             then return False
@@ -59,10 +64,27 @@ runInstall Session{..} = do
             case cloned of
                 ExitSuccess -> B.putStrLn "Done."
                 _ -> B.putStrLn "Fail."
+        doesFileExist (B.unpack $ dir <> "/init.fish") >>= \case
+            True -> return (Plugin dir)
+            False -> return Theme
+    withFile (fplugPath <> "/build.fish") WriteMode $ \handle ->
+        B.hPutBuilder handle $ mconcat $ sourcePaths initPaths
   where
     pluginsDir = fplugPath <> "/plugins"
     dirB url = maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8
         (gitDir url)
+    sourcePaths [] = []
+    sourcePaths (p : ps) = case p of
+        Plugin dir -> pathExpand dir : sourcePaths ps
+        Theme -> sourcePaths ps
+      where
+        pathExpand dir = mconcat
+            [ "source "
+            , B.stringUtf8 pluginsDir
+            , "/"
+            , B.byteString dir
+            , "/init.fish\n"
+            ]
 
 -- utility
 
