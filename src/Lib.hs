@@ -2,6 +2,8 @@ module Lib
     ( app
     ) where
 
+import Data.List
+import Data.Maybe
 import Data.Monoid
 import Control.Monad
 
@@ -14,13 +16,13 @@ import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Base64.URL as B64
 
 import System.Exit
+import System.Environment
 import System.Directory
 import System.Process
 import System.IO
 import System.FilePath
 
 import qualified Config as C
-import Args
 import Git
 
 data Plugin = Plugin ByteString | Theme
@@ -29,38 +31,41 @@ data Plugin = Plugin ByteString | Theme
 -- things that are set up in the beginning of execution and hardly change
 data Session = Session
     { fplugPath :: FilePath
+    , fplugConf :: C.Config
     }
 
 -- main execution functions
 
 app :: IO ()
 app = do
+    -- Primitive command line argument processing to check -h or --help
+    args <- getArgs
+    when (isJust $ find (\arg -> arg == "-h" || arg == "--help") args) $
+        B.putStrLn helpMsg *> exitSuccess
+    B.putStrLn greetMsg
     fpath <- getAppUserDataDirectory "fplug"
-    getCmd >>= runCmd Session
+    -- TODO: if config.yaml does not exist, create one with the template,
+    -- and add "source" in config.fish
+    conf <- C.decode (fpath </> "config.yaml")
+    runSync Session
         { fplugPath = fpath
+        , fplugConf = conf
         }
 
-runCmd :: Session -> Cmd -> IO ()
-runCmd session cmd = case cmd of
-    CmdInit -> die "init not implemented yet"
-    CmdInstall _ -> runInstall session
-    CmdRemove _ -> die "remove not implemented yet"
-    CmdUpgrade -> die "install not implemented yet"
-    CmdClean -> die "clean not implemented yet"
-
-runInstall :: Session -> IO ()
-runInstall Session{..} = do
-    conf <- C.decode (fplugPath </> "fplug.yaml")
+runSync :: Session -> IO ()
+runSync Session{..} = do
     pluginsExist <- doesDirectoryExist pluginsDir
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
-    initPaths <- forM (C.gitURLs conf) $ \ url -> do
+    -- Loop over each entry of config.yaml
+    initPaths <- forM (C.gitURLs fplugConf) $ \ url -> do
         let dir = dirB url
         pluginDirExist <- if not pluginsExist
             then return False
             else doesDirectoryExist $ B.unpack dir
         if pluginDirExist then
             bPutStr $ B.byteString dir <> " is already installed.\n"
+            -- TODO: do the update here
         else do
             bPutStr $ "Installing " <> B.byteString dir <> "... "
             cloned <- silentCall
@@ -101,3 +106,14 @@ silentCall cmd args = do
 
 bPutStr :: Builder -> IO ()
 bPutStr = B.hPutBuilder stdout
+
+helpMsg :: ByteString
+helpMsg = "usage: fplug [-h|--help]\n\
+    \\nRunning fplug will read ~/.fplug/config.yaml and install plugins.\
+    \\nFor more information, please visit:\n\
+    \\n    https://github.com/kinoru/fplug\n"
+
+greetMsg :: ByteString
+greetMsg = "\
+  \fplug: fish plugin manager\
+\\n=========================="
