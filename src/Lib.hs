@@ -30,8 +30,8 @@ data Plugin = Plugin ByteString | Theme
 -- Session configuration container. In other words,
 -- things that are set up in the beginning of execution and hardly change
 data Session = Session
-    { fplugPath :: FilePath
-    , fplugConf :: C.Config
+    { chipsPath :: FilePath
+    , chipsConf :: C.Config
     }
 
 -- main execution functions
@@ -43,13 +43,13 @@ app = do
     when (isJust $ find (\arg -> arg == "-h" || arg == "--help") args) $
         B.putStrLn helpMsg *> exitSuccess
     B.putStrLn greetMsg
-    fpath <- getAppUserDataDirectory "fplug"
+    fpath <- getAppUserDataDirectory "chips"
     -- TODO: if config.yaml does not exist, create one with the template,
     -- and add "source" in config.fish
     conf <- C.decode (fpath </> "config.yaml")
     runSync Session
-        { fplugPath = fpath
-        , fplugConf = conf
+        { chipsPath = fpath
+        , chipsConf = conf
         }
 
 runSync :: Session -> IO ()
@@ -58,7 +58,7 @@ runSync Session{..} = do
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
     -- Loop over each entry of config.yaml
-    initPaths <- forM (C.gitURLs fplugConf) $ \ url -> do
+    initPaths <- forM (C.gitURLs chipsConf) $ \ url -> do
         let dir = dirB url
         pluginDirExist <- if not pluginsExist
             then return False
@@ -76,10 +76,10 @@ runSync Session{..} = do
         doesFileExist (B.unpack dir </> "init.fish") >>= \case
             True -> return (Plugin dir)
             False -> return Theme
-    withFile (fplugPath </> "build.fish") WriteMode $ \handle ->
+    withFile (chipsPath </> "build.fish") WriteMode $ \handle ->
         B.hPutBuilder handle $ mconcat $ sourcePaths initPaths
   where
-    pluginsDir = fplugPath </> "plugins"
+    pluginsDir = chipsPath </> "plugins"
     dirB url = maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8
         (gitDir url)
     sourcePaths [] = []
@@ -108,12 +108,12 @@ bPutStr :: Builder -> IO ()
 bPutStr = B.hPutBuilder stdout
 
 helpMsg :: ByteString
-helpMsg = "usage: fplug [-h|--help]\n\
-    \\nRunning fplug will read ~/.fplug/config.yaml and install plugins.\
+helpMsg = "usage: chips [-h|--help]\n\
+    \\nRunning chips will read ~/.chips/config.yaml and install plugins.\
     \\nFor more information, please visit:\n\
-    \\n    https://github.com/kinoru/fplug\n"
+    \\n    https://github.com/kinoru/chips\n"
 
 greetMsg :: ByteString
 greetMsg = "\
-  \fplug: fish plugin manager\
+  \chips: fish plugin manager\
 \\n=========================="
