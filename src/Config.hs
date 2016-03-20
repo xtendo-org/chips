@@ -34,4 +34,4 @@ gitURLs (Config mgits mgithubs) = gits ++ githubURLs
   where
     gits = fromMaybe [] mgits
     githubs = fromMaybe [] mgithubs
-    githubURLs = ["git@github.com:" <> url <> ".git" | url <- githubs]
+    githubURLs = ["https://github.com/" <> url | url <- githubs]
