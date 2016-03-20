@@ -4,7 +4,7 @@ synopsis:           A plugin manager for the fish shell
 description:        Please see README.md
 homepage:           http://github.com/kinoru/chips#readme
 license:            GPL-3
-license-file:       LICENSE
+license-file:       LICENSE/chips
 author:             Kinoru
 maintainer:         xkinoru@gmail.com
 copyright:          2015 Kinoru et al.
@@ -17,6 +17,7 @@ library
   hs-source-dirs:   src
   exposed-modules:
     Git,
+    Spawn,
     Lib
   other-modules:
     Config

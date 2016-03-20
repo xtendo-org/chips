@@ -22,6 +22,8 @@ import System.Process
 import System.IO
 import System.FilePath
 
+import Spawn
+
 import qualified Config as C
 import Git
 
@@ -58,8 +60,12 @@ runSync Session{..} = do
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
     -- Loop over each entry of config.yaml
-    initPaths <- forM (C.gitURLs chipsConf) $ \ url -> do
-        let dir = dirB url
+    plugResults <- parMapIO (installPlug pluginsExist) $ C.gitURLs chipsConf
+    withFile (chipsPath </> "build.fish") WriteMode $ \handle ->
+        B.hPutBuilder handle $ mconcat $ sourcePaths plugResults
+  where
+    pluginsDir = chipsPath </> "plugins"
+    installPlug pluginsExist url = do
         pluginDirExist <- if not pluginsExist
             then return False
             else doesDirectoryExist $ B.unpack dir
@@ -67,21 +73,18 @@ runSync Session{..} = do
             bPutStr $ B.byteString dir <> " is already installed.\n"
             -- TODO: do the update here
         else do
-            bPutStr $ "Installing " <> B.byteString dir <> "... "
+            let builderDir = B.byteString dir
+            bPutStr $ "Installing " <> builderDir <> "...\n"
             cloned <- silentCall
                 "git" ["clone", "--depth=1", T.unpack url, B.unpack dir]
             case cloned of
-                ExitSuccess -> B.putStrLn "Done."
+                ExitSuccess -> bPutStr $ "Installed " <> builderDir <> ".\n"
                 _ -> B.putStrLn "Fail."
         doesFileExist (B.unpack dir </> "init.fish") >>= \case
             True -> return (Plugin dir)
             False -> return Theme
-    withFile (chipsPath </> "build.fish") WriteMode $ \handle ->
-        B.hPutBuilder handle $ mconcat $ sourcePaths initPaths
-  where
-    pluginsDir = chipsPath </> "plugins"
-    dirB url = maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8
-        (gitDir url)
+      where
+        dir = maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8 (gitDir url)
     sourcePaths [] = []
     sourcePaths (p : ps) = case p of
         Plugin dir -> pathExpand dir : sourcePaths ps
