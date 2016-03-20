@@ -22,7 +22,7 @@ import System.Process
 import System.IO
 import System.FilePath
 
-import Spawn
+import Spawn (parMapIO)
 
 import qualified Config as C
 import Git
@@ -42,13 +42,11 @@ app :: IO ()
 app = do
     -- Primitive command line argument processing to check -h or --help
     args <- getArgs
-    when (isJust $ find (\arg -> arg == "-h" || arg == "--help") args) $
-        B.putStrLn helpMsg *> exitSuccess
     B.putStrLn greetMsg
     fpath <- getAppUserDataDirectory "chips"
-    -- TODO: if config.yaml does not exist, create one with the template,
+    -- TODO: if plugin.yaml does not exist, create one with the template,
     -- and add "source" in config.fish
-    conf <- C.decode (fpath </> "config.yaml")
+    conf <- C.decode (fpath </> "plugin.yaml")
     runSync Session
         { chipsPath = fpath
         , chipsConf = conf
@@ -59,12 +57,14 @@ runSync Session{..} = do
     pluginsExist <- doesDirectoryExist pluginsDir
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
-    -- Loop over each entry of config.yaml
+    -- Loop over each entry of plugin.yaml
     plugResults <- parMapIO (installPlug pluginsExist) $ C.gitURLs chipsConf
-    withFile (chipsPath </> "build.fish") WriteMode $ \handle ->
+    withFile buildPath WriteMode $ \handle ->
         B.hPutBuilder handle $ mconcat $ sourcePaths plugResults
+    bPutStr $ "Build result saved at " <> B.stringUtf8 buildPath <> "\n"
   where
-    pluginsDir = chipsPath </> "plugins"
+    pluginsDir = chipsPath </> "dist"
+    buildPath = chipsPath </> "build.fish"
     installPlug pluginsExist url = do
         pluginDirExist <- if not pluginsExist
             then return False
@@ -109,12 +109,6 @@ silentCall cmd args = do
 
 bPutStr :: Builder -> IO ()
 bPutStr = B.hPutBuilder stdout
-
-helpMsg :: ByteString
-helpMsg = "usage: chips [-h|--help]\n\
-    \\nRunning chips will read ~/.chips/config.yaml and install plugins.\
-    \\nFor more information, please visit:\n\
-    \\n    https://github.com/kinoru/chips\n"
 
 greetMsg :: ByteString
 greetMsg = "\
