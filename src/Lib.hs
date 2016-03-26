@@ -2,8 +2,6 @@ module Lib
     ( app
     ) where
 
-import Data.List
-import Data.Maybe
 import Data.Monoid
 import Control.Monad
 
@@ -16,12 +14,11 @@ import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Base64.URL as B64
 
 import System.Exit
-import System.Environment
-import System.Directory
 import System.Process
 import System.IO
 import System.FilePath
 
+import Lib.Directory
 import Spawn (parMapIO)
 
 import qualified Config as C
@@ -40,10 +37,8 @@ data Session = Session
 
 app :: IO ()
 app = do
-    -- Primitive command line argument processing to check -h or --help
-    args <- getArgs
     B.putStrLn greetMsg
-    fpath <- getAppUserDataDirectory "chips"
+    fpath <- getAppDirectory "chips"
     -- TODO: if plugin.yaml does not exist, create one with the template,
     -- and add "source" in config.fish
     conf <- C.decode (fpath </> "plugin.yaml")
