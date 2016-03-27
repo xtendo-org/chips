@@ -35,7 +35,8 @@ data Plugin = Plugin
 -- Session configuration container. In other words,
 -- things that are set up in the beginning of execution and hardly change
 data Session = Session
-    { chipsPath :: FilePath
+    { fishPath :: FilePath
+    , chipsPath :: FilePath
     , chipsConf :: C.Config
     }
 
@@ -44,13 +45,15 @@ data Session = Session
 app :: IO ()
 app = do
     B.putStr greetMsg
-    fpath <- getAppDirectory "chips"
+    fPath <- getAppDirectory "fish"
+    cPath <- getAppDirectory "chips"
     -- TODO: if plugin.yaml does not exist, create one with the template,
     -- and add "source" in config.fish
-    conf <- C.decode (fpath </> "plugin.yaml")
+    conf <- C.decode (cPath </> "plugin.yaml")
     runSync Session
-        { chipsPath = fpath
+        { chipsPath = cPath
         , chipsConf = conf
+        , fishPath = fPath
         }
 
 runSync :: Session -> IO ()
@@ -63,14 +66,23 @@ runSync Session{..} = do
     withFile buildPath WriteMode $ \handle -> B.hPutBuilder handle $
         mconcat $ map sourceInit $ mapMaybe plugInit plugResults
     bPutStr $ "Build result saved at " <> B.stringUtf8 buildPath <> "\n"
+    maybe (return ()) (`copyFileReport` fishPromptPath) $
+        listToMaybe $ mapMaybe plugPrompt plugResults
+    maybe (return ()) (`copyFileReport` fishRightPath) $
+        listToMaybe $ mapMaybe plugRightPrompt plugResults
   where
     pluginsDir = chipsPath </> "dist"
     buildPath = chipsPath </> "build.fish"
+    fishPromptPath = fishPath </> "functions" </> "fish_prompt.fish"
+    fishRightPath = fishPath </> "functions" </> "fish_right_prompt.fish"
     sourceInit initPath = mconcat
         [ "source "
         , B.stringUtf8 $ pluginsDir </> initPath
         , "\n"
         ]
+    copyFileReport :: FilePath -> FilePath -> IO ()
+    copyFileReport x y = x `copyFile` y >>
+        lPutStr ["Copied ", B.stringUtf8 x, " to ", B.stringUtf8 y, "\n"]
 
 installPlug :: Bool -> Text -> IO Plugin
 installPlug pluginsExist url = do
@@ -78,10 +90,10 @@ installPlug pluginsExist url = do
         then return False
         else doesDirectoryExist dir
     if plugDirExists then
-        bPutStr $ builderDir <> " is already installed.\n"
+        lPutStr [builderDir, " is already installed.\n"]
         -- TODO: do the update here
     else do
-        bPutStr $ "Installing " <> builderDir <> "...\n"
+        lPutStr ["Installing ", builderDir, "...\n"]
         cloned <- silentCall
             "git" ["clone", "--depth=1", T.unpack url, dir]
         bPutStr $ (<> builderDir <> ".\n") $ case cloned of
@@ -118,6 +130,9 @@ silentCall cmd args = do
 
 bPutStr :: Builder -> IO ()
 bPutStr = B.hPutBuilder stdout
+
+lPutStr :: [Builder] -> IO ()
+lPutStr = bPutStr . mconcat
 
 greetMsg :: ByteString
 greetMsg = "chips: fish plugin manager\n\n"
