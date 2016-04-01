@@ -117,9 +117,7 @@ dealPlug pluginsExist url = do
             local <- readProcessB "git" ["-C", dir, "rev-parse", "@{0}"]
             remote <- readProcessB "git" ["-C", dir, "rev-parse", "@{u}"]
             if local == remote
-            then do
-                lPutStr [bDir, " is already up to date.\n"]
-                return Nothing
+            then lPutStr [bDir, " is already up to date.\n"] >> successWork
             else do
                 resetResult <- silentCall "git"
                     ["-C", dir, "reset", "--hard", "origin/master"]
