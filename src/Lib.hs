@@ -2,6 +2,10 @@ module Lib
     ( app
     ) where
 
+import Paths_chips
+import Data.Version
+
+import Data.List
 import Data.Maybe
 import Data.Monoid
 import Control.Monad
@@ -29,7 +33,7 @@ import Git
 data Plugin = Plugin
     { plugInit :: Maybe FilePath
     , plugPrompt :: Maybe FilePath
-    , plugRightPrompt :: Maybe FilePath
+    , plugRight :: Maybe FilePath
     }
 
 -- Session configuration container. In other words,
@@ -44,7 +48,7 @@ data Session = Session
 
 app :: IO ()
 app = do
-    B.putStr greetMsg
+    bPutStr greetMsg
     fPath <- getAppDirectory "fish"
     cPath <- getAppDirectory "chips"
     -- TODO: if plugin.yaml does not exist, create one with the template,
@@ -62,14 +66,15 @@ runSync Session{..} = do
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
     -- Loop over each entry of plugin.yaml
-    plugResults <- parMapIO (installPlug pluginsExist) $ C.gitURLs chipsConf
+    plugResults <- fmap catMaybes $
+        parMapIO (dealPlug pluginsExist) $ C.gitURLs chipsConf
     withFile buildPath WriteMode $ \handle -> B.hPutBuilder handle $
         mconcat $ map sourceInit $ mapMaybe plugInit plugResults
     bPutStr $ "Build result saved at " <> B.stringUtf8 buildPath <> "\n"
     maybe (return ()) (`copyFileReport` fishPromptPath) $
         listToMaybe $ mapMaybe plugPrompt plugResults
     maybe (return ()) (`copyFileReport` fishRightPath) $
-        listToMaybe $ mapMaybe plugRightPrompt plugResults
+        listToMaybe $ mapMaybe plugRight plugResults
   where
     pluginsDir = chipsPath </> "dist"
     buildPath = chipsPath </> "build.fish"
@@ -84,38 +89,56 @@ runSync Session{..} = do
     copyFileReport x y = x `copyFile` y >>
         lPutStr ["Copied ", B.stringUtf8 x, " to ", B.stringUtf8 y, "\n"]
 
-installPlug :: Bool -> Text -> IO Plugin
-installPlug pluginsExist url = do
+dealPlug :: Bool -> Text -> IO (Maybe Plugin)
+dealPlug pluginsExist url = do
     plugDirExists <- if not pluginsExist
         then return False
         else doesDirectoryExist dir
-    if plugDirExists then
-        lPutStr [builderDir, " is already installed.\n"]
-        -- TODO: do the update here
+    if plugDirExists then do
+        lPutStr ["Checking update for ", bDir, "...\n"]
+        fetchResult <- silentCall "git" ["-C", dir, "fetch", "origin"]
+        if fetchResult == ExitSuccess then do
+            local <- readProcessB "git" ["-C", dir, "rev-parse", "@{0}"]
+            remote <- readProcessB "git" ["-C", dir, "rev-parse", "@{u}"]
+            if local == remote
+            then do
+                lPutStr [bDir, " is already up to date.\n"]
+                return Nothing
+            else do
+                resetResult <- silentCall "git"
+                    ["-C", dir, "reset", "--hard", "origin/master"]
+                if resetResult == ExitSuccess
+                then lPutStr [bDir, " is updated.\n"] >> successWork
+                else lPutStr ["Failed updating ", bDir] >> return Nothing
+        else do
+            lPutStr ["Failed checking update for ", bDir, ".\n"]
+            return Nothing
     else do
-        lPutStr ["Installing ", builderDir, "...\n"]
-        cloned <- silentCall
-            "git" ["clone", "--depth=1", T.unpack url, dir]
-        bPutStr $ (<> builderDir <> ".\n") $ case cloned of
-            ExitSuccess -> "Installed "
-            _ -> "Failed installing "
-    initExists <- doesFileExist initFishPath
-    promptExists <- doesFileExist promptPath
-    rightExists <- doesFileExist rightPath
-    return Plugin
-        { plugInit = if initExists then Just initFishPath else Nothing
-        , plugPrompt = if promptExists then Just promptPath else Nothing
-        , plugRightPrompt = if rightExists then Just rightPath else Nothing
-        }
+        lPutStr ["Installing ", bDir, "...\n"]
+        cloneResult <- silentCall "git"
+            ["clone", "--depth=1", T.unpack url, dir]
+        if cloneResult == ExitSuccess then
+            lPutStr ["Installed ", bDir, ".\n"] >> successWork
+        else
+            lPutStr ["Failed installing ", bDir, ".\n"] >> return Nothing
   where
     dir :: FilePath
     dir = B.unpack $
         maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8 (gitDir url)
-    builderDir :: Builder
-    builderDir = B.stringUtf8 dir
+    bDir :: Builder
+    bDir = B.stringUtf8 dir
     initFishPath = dir </> "init.fish"
     promptPath = dir </> "fish_prompt.fish"
     rightPath = dir </> "fish_right_prompt.fish"
+    successWork = do
+        initExists <- doesFileExist initFishPath
+        promptExists <- doesFileExist promptPath
+        rightExists <- doesFileExist rightPath
+        return $ Just Plugin
+            { plugInit = if initExists then Just initFishPath else Nothing
+            , plugPrompt = if promptExists then Just promptPath else Nothing
+            , plugRight = if rightExists then Just rightPath else Nothing
+            }
 
 -- utility
 
@@ -128,11 +151,27 @@ silentCall cmd args = do
         }
     waitForProcess procH
 
+readProcessB :: String -> [String] -> IO ByteString
+readProcessB cmd args = do
+    (_, Just outH, _, procH) <- createProcess (proc cmd args)
+        { std_in = CreatePipe
+        , std_out = CreatePipe
+        , std_err = CreatePipe
+        }
+    readB <- B.hGetContents outH
+    _ <- waitForProcess procH
+    return readB
+
 bPutStr :: Builder -> IO ()
 bPutStr = B.hPutBuilder stdout
 
 lPutStr :: [Builder] -> IO ()
 lPutStr = bPutStr . mconcat
 
-greetMsg :: ByteString
-greetMsg = "chips: fish plugin manager\n\n"
+-- constant
+
+greetMsg :: Builder
+greetMsg = "chips: fish plugin manager\nversion " <> ver <> "\n"
+  where
+    ver :: Builder
+    ver = mconcat $ intersperse "." $ map B.intDec $ versionBranch version

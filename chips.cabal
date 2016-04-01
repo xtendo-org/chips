@@ -22,6 +22,7 @@ library
   other-modules:
     Config
     Lib.Directory
+    Paths_chips
   build-depends:
     aeson >= 0.9 && < 0.10,
     base64-bytestring >= 1.0.0.1 && < 2,
