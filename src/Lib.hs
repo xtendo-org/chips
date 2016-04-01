@@ -81,12 +81,17 @@ runSync Session{..} = do
         parMapIO (dealPlug pluginsExist) $ C.gitURLs chipsConf
     withFile buildPath WriteMode $ \handle -> B.hPutBuilder handle $
         mconcat $ map sourceInit $ mapMaybe plugInit plugResults
-    bPutStr $ "Build result saved at " <> B.stringUtf8 buildPath <> "\n"
+    lPutStr ["Build result saved at ", B.stringUtf8 buildPath, "\n"]
+    configFish <- B.readFile configFishPath
+    when (snd (B.breakSubstring sourceLine configFish) == "") $ do
+        B.appendFile configFishPath sourceLine
+        lPutStr ["Added to ", B.stringUtf8 configFishPath, "\n"]
     maybe (return ()) (`copyFileReport` fishPromptPath) $
         listToMaybe $ mapMaybe plugPrompt plugResults
     maybe (return ()) (`copyFileReport` fishRightPath) $
         listToMaybe $ mapMaybe plugRight plugResults
   where
+    configFishPath = fishPath </> "config.fish"
     pluginsDir = chipsPath </> "dist"
     buildPath = chipsPath </> "build.fish"
     fishPromptPath = fishPath </> "functions" </> "fish_prompt.fish"
@@ -186,3 +191,8 @@ greetMsg = "chips: fish plugin manager\nversion " <> ver <> "\n"
   where
     ver :: Builder
     ver = mconcat $ intersperse "." $ map B.intDec $ versionBranch version
+
+sourceLine :: ByteString
+sourceLine = "\n\
+\if [ -e ~/.config/chips/build.fish ] ;\
+\ source ~/.config/chips/build.fish ; end\n"
