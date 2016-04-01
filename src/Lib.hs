@@ -13,6 +13,7 @@ import Control.Monad
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.IO as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Builder (Builder)
@@ -53,12 +54,22 @@ app = do
     cPath <- getAppDirectory "chips"
     -- TODO: if plugin.yaml does not exist, create one with the template,
     -- and add "source" in config.fish
-    conf <- C.decode (cPath </> "plugin.yaml")
-    runSync Session
-        { chipsPath = cPath
-        , chipsConf = conf
-        , fishPath = fPath
-        }
+    let yamlPath = cPath </> "plugin.yaml"
+    doesFileExist yamlPath >>= \ yamlExists -> if yamlExists then do
+        conf <- C.decode yamlPath
+        runSync Session
+            { chipsPath = cPath
+            , chipsConf = conf
+            , fishPath = fPath
+            }
+    else do
+        createDirectoryIfMissing True cPath
+        T.writeFile yamlPath C.templateConfig
+        lPutStr
+            [ "chips has just created the default plugin configuration at: "
+            , B.stringUtf8 yamlPath
+            , "\nPlease edit the file and run chips again.\n"
+            ]
 
 runSync :: Session -> IO ()
 runSync Session{..} = do

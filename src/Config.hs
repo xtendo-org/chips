@@ -2,6 +2,7 @@ module Config
     ( decode
     , encode
     , Config(..)
+    , templateConfig
     , gitURLs
     ) where
 
@@ -13,6 +14,17 @@ import System.Exit
 
 import Data.Aeson.TH
 import qualified Data.Yaml as Y
+
+templateConfig :: Text
+templateConfig = "\
+\git:\n\
+\# Add Git clone URLs for fish plugins here.\n\
+\# For example, uncomment below to enable the fish-sensible plugin.\n\
+\# - https://github.com/simnalamburt/fish-sensible\n\
+\github:\n\
+\# Add GitHub repositories for fish plugins here.\n\
+\# For example, uncomment below to enable the fish-sensible plugin.\n\
+\# - simnalamburt/fish-sensible\n"
 
 data Config = Config
     { git :: Maybe [Text]
