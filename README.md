@@ -15,12 +15,27 @@ OMF is lovely, but it does have its shortcomings. chips aims to address them. Th
 
 ## Installation
 
-Download **chips 1.0.0** (2016-04-01):
+Current version: **chips 1.0.0** (2016-04-01)
 
-- [chips 1.0.0 for GNU/Linux (x64)]
-- [chips 1.0.0 for OS X]
+### GNU/Linux
 
-Then put it in a directory that is in `$PATH`. Normally the recommended location is `~/.local/bin`.
+Assuming `~/.local/bin` is in your `$PATH`:
+
+```fish
+curl -L \
+    https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64 \
+    > ~/.local/bin/chips \
+    ; and chmod +x ~/.local/bin/chips
+```
+
+### OS X
+
+```fish
+curl -L \
+    https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx \
+    > ~/.local/bin/chips \
+    ; and chmod +x ~/.local/bin/chips
+```
 
 ### Installation the hard way: Build from source
 
@@ -63,5 +78,3 @@ You should have received a copy of the GNU General Public License along with thi
 [Stack]: http://haskellstack.org/
 [fish-sensible]: https://github.com/simnalamburt/fish-sensible
 [shellder]: https://github.com/simnalamburt/shellder
-[chips 1.0.0 for GNU/Linux (x64)]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64
-[chips 1.0.0 for OS X]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx
