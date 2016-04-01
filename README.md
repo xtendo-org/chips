@@ -13,6 +13,25 @@ Boost your friendly interactive shell with plugins.
 
 [Not an April Fools' joke](https://github.com/kinoru/chips/commit/0b87850ab0a658391b643f0ecc37f748dac89010).
 
+## Installation
+
+Download chips:
+
+- [chips for GNU/Linux (x64)]
+- [chips for OS X]
+
+Then put it in a directory that is in `$PATH`. Normally the recommended location is `~/.local/bin`.
+
+### Installation the hard way: Build from source
+
+Use [Stack].
+
+```fish
+git clone --depth=1 https://github.com/kinoru/chips
+cd chips
+stack install
+```
+
 ## Usage
 
 1. Run `chips`. This will create `~/.config/chips/plugin.yaml` with the default template.
@@ -44,3 +63,5 @@ You should have received a copy of the GNU General Public License along with thi
 [Stack]: http://haskellstack.org/
 [fish-sensible]: https://github.com/simnalamburt/fish-sensible
 [shellder]: https://github.com/simnalamburt/shellder
+[chips for GNU/Linux (x64)]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64
+[chips for OS X]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx
