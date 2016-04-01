@@ -2,23 +2,23 @@
 
 A plugin manager for [fish].
 
-## Advantages
+## Why another plugin manager? Why not Oh My Fish?
 
-Boost your friendly interactive shell with plugins.
+OMF is lovely, but it does have its shortcomings. chips aims to address them. The advantages are:
 
 - Fast: **Parallel installation/upgrade** of plugins.
 - Minimally invasive to your `config.fish`: Adding **one** line is sufficient
 - Zero overhead to the fish shell itself: **Only plugins will be sourced**, chips itself doesn't require any fish script to be loaded at all to work
-- Zero dependency and minimum installation cost: chips is a single statically-compiled binary executable file
+- **Zero dependency** and minimum installation cost: chips is a single statically-compiled binary executable file
 
 [Not an April Fools' joke](https://github.com/kinoru/chips/commit/0b87850ab0a658391b643f0ecc37f748dac89010).
 
 ## Installation
 
-Download chips:
+Download **chips 1.0.0** (2016-04-01):
 
-- [chips for GNU/Linux (x64)]
-- [chips for OS X]
+- [chips 1.0.0 for GNU/Linux (x64)]
+- [chips 1.0.0 for OS X]
 
 Then put it in a directory that is in `$PATH`. Normally the recommended location is `~/.local/bin`.
 
@@ -63,5 +63,5 @@ You should have received a copy of the GNU General Public License along with thi
 [Stack]: http://haskellstack.org/
 [fish-sensible]: https://github.com/simnalamburt/fish-sensible
 [shellder]: https://github.com/simnalamburt/shellder
-[chips for GNU/Linux (x64)]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64
-[chips for OS X]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx
+[chips 1.0.0 for GNU/Linux (x64)]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64
+[chips 1.0.0 for OS X]: https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx
