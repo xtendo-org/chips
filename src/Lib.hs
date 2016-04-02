@@ -23,6 +23,7 @@ import qualified Data.ByteString.Base64.URL as B64
 import System.Exit
 import System.Process
 import System.IO
+import System.IO.Error
 import System.FilePath
 
 import Lib.Directory
@@ -76,21 +77,29 @@ runSync Session{..} = do
     pluginsExist <- doesDirectoryExist pluginsDir
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
-    -- Loop over each entry of plugin.yaml
+
+    -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
         parMapIO (dealPlug pluginsExist) $ C.gitURLs chipsConf
+
+    -- Register or unregister themes
+    createDirectoryIfMissing True functionsDir
+    maybe (tryRemoveFile fishPromptPath) (`copyFileReport` fishPromptPath) $
+        listToMaybe $ mapMaybe plugPrompt plugResults
+    maybe (tryRemoveFile fishRightPath) (`copyFileReport` fishRightPath) $
+        listToMaybe $ mapMaybe plugRight plugResults
+
+    -- Create build.fish for plugins with init.fish
     withFile buildPath WriteMode $ \handle -> B.hPutBuilder handle $
         mconcat $ map sourceInit $ mapMaybe plugInit plugResults
     lPutStr ["Build result saved at ", B.stringUtf8 buildPath, "\n"]
+
+    -- Add build.fish to config.fish
     configFish <- B.readFile configFishPath
     when (snd (B.breakSubstring sourceLine configFish) == "") $ do
         B.appendFile configFishPath sourceLine
         lPutStr ["Added to ", B.stringUtf8 configFishPath, "\n"]
-    createDirectoryIfMissing True functionsDir
-    maybe (return ()) (`copyFileReport` fishPromptPath) $
-        listToMaybe $ mapMaybe plugPrompt plugResults
-    maybe (return ()) (`copyFileReport` fishRightPath) $
-        listToMaybe $ mapMaybe plugRight plugResults
+
   where
     configFishPath = fishPath </> "config.fish"
     pluginsDir = chipsPath </> "dist"
@@ -183,6 +192,12 @@ bPutStr = B.hPutBuilder stdout
 
 lPutStr :: [Builder] -> IO ()
 lPutStr = bPutStr . mconcat
+
+-- A function that "tries" to remove a file.
+-- If the file does not exist, nothing happens.
+tryRemoveFile :: FilePath -> IO ()
+tryRemoveFile path = catchIOError (removeFile path) $
+    \ e -> unless (isDoesNotExistError e) $ ioError e
 
 -- constant
 
