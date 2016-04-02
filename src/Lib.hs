@@ -86,6 +86,7 @@ runSync Session{..} = do
     when (snd (B.breakSubstring sourceLine configFish) == "") $ do
         B.appendFile configFishPath sourceLine
         lPutStr ["Added to ", B.stringUtf8 configFishPath, "\n"]
+    createDirectoryIfMissing True functionsDir
     maybe (return ()) (`copyFileReport` fishPromptPath) $
         listToMaybe $ mapMaybe plugPrompt plugResults
     maybe (return ()) (`copyFileReport` fishRightPath) $
@@ -94,8 +95,9 @@ runSync Session{..} = do
     configFishPath = fishPath </> "config.fish"
     pluginsDir = chipsPath </> "dist"
     buildPath = chipsPath </> "build.fish"
-    fishPromptPath = fishPath </> "functions" </> "fish_prompt.fish"
-    fishRightPath = fishPath </> "functions" </> "fish_right_prompt.fish"
+    functionsDir = fishPath </> "functions"
+    fishPromptPath = functionsDir </> "fish_prompt.fish"
+    fishRightPath = functionsDir </> "fish_right_prompt.fish"
     sourceInit initPath = mconcat
         [ "source "
         , B.stringUtf8 $ pluginsDir </> initPath
