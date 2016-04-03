@@ -1,9 +1,14 @@
 module Utility where
 
+import Paths_chips
+import Data.Version
+
+import Data.List
 import Control.Monad
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import Data.ByteString.Lazy as LB (toStrict)
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Builder as B
 
@@ -25,16 +30,19 @@ silentCall cmd args = do
         }
     waitForProcess procH
 
-readProcessB :: String -> [String] -> IO ByteString
+readProcessB :: String -> [String] -> IO (Either ByteString ByteString)
 readProcessB cmd args = do
-    (_, Just outH, _, procH) <- createProcess (proc cmd args)
+    (_, Just outH, Just errH, procH) <- createProcess (proc cmd args)
         { std_in = CreatePipe
         , std_out = CreatePipe
         , std_err = CreatePipe
         }
     readB <- B.hGetContents outH
-    _ <- waitForProcess procH
-    return readB
+    errB <- B.hGetContents errH
+    exitCode <- waitForProcess procH
+    return $ case exitCode of
+        ExitSuccess -> Right readB
+        _ -> Left errB
 
 bPutStr :: Builder -> IO ()
 bPutStr = B.hPutBuilder stdout
@@ -47,3 +55,7 @@ lPutStr = bPutStr . mconcat
 tryRemoveFile :: FilePath -> IO ()
 tryRemoveFile path = catchIOError (removeFile path) $
     \ e -> unless (isDoesNotExistError e) $ ioError e
+
+chipsVer :: ByteString
+chipsVer = LB.toStrict $ B.toLazyByteString $
+    mconcat $ intersperse "." $ map B.intDec $ versionBranch version
