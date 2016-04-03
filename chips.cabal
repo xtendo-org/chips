@@ -10,17 +10,25 @@ maintainer:         xkinoru@gmail.com
 copyright:          2015 Kinoru et al.
 category:           Shell
 build-type:         Simple
--- extra-source-files:
+extra-source-files:
+  src/gnulinux/Platform.hs
+  src/osx/Platform.hs
 cabal-version:      >=1.10
 
 library
   hs-source-dirs:   src
+  if os(linux)
+    hs-source-dirs: src/gnulinux
+  if os(darwin)
+    hs-source-dirs: src/osx
   exposed-modules:
     Git
     Spawn
     Lib
   other-modules:
     Utility
+    Platform
+    SelfUpdate
     Config
     Lib.Directory
     Paths_chips
@@ -33,6 +41,7 @@ library
     filepath >= 1.4 && < 2,
     process >= 1.2.3 && < 2,
     text >= 1.2.2 && < 2,
+    unix >= 2.7.1.0 && < 3,
     yaml >= 0.8.15.2 && < 0.9,
     base >= 4.7 && < 5
   default-language: Haskell2010

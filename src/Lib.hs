@@ -2,10 +2,6 @@ module Lib
     ( app
     ) where
 
-import Paths_chips
-import Data.Version
-
-import Data.List
 import Data.Maybe
 import Data.Monoid
 import Control.Monad
@@ -25,10 +21,12 @@ import System.IO
 import System.FilePath
 
 import Lib.Directory
-import Spawn (parMapIO)
+import Spawn
 import Utility
 import qualified Config as C
 import Git
+import SelfUpdate
+import Platform
 
 data Plugin = Plugin
     { plugInit :: Maybe FilePath
@@ -76,6 +74,11 @@ runSync Session{..} = do
     unless pluginsExist $ createDirectoryIfMissing True pluginsDir
     setCurrentDirectory pluginsDir
 
+    -- Begin updating chips itself
+    waitUpdate <- spawn $ do
+        bPutStr "Checking update for chips...\n"
+        selfUpdate "kinoru/chips" ("chips_" <> platform)
+
     -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
         parMapIO (dealPlug pluginsExist) $ C.gitURLs chipsConf
@@ -95,8 +98,16 @@ runSync Session{..} = do
     -- Add build.fish to config.fish
     configFish <- B.readFile configFishPath
     when (snd (B.breakSubstring sourceLine configFish) == "") $ do
-        B.appendFile configFishPath sourceLine
+        B.appendFile configFishPath $ "\n# chips" <> sourceLine
         lPutStr ["Added to ", B.stringUtf8 configFishPath, "\n"]
+
+    -- Finish updating chips itself
+    waitUpdate >>= \case
+        Left e -> case e of
+            AlreadyUpToDate -> B.putStr "chips is already up to date.\n"
+            x -> lPutStr
+                ["chips self-update fail: ", B.byteString $ updateFailMsg x]
+        Right tag -> lPutStr ["Updated chips to ", B.byteString tag, "\n"]
 
   where
     configFishPath = fishPath </> "config.fish"
@@ -167,10 +178,8 @@ dealPlug pluginsExist url = do
 -- constant
 
 greetMsg :: Builder
-greetMsg = "chips: fish plugin manager\nversion " <> ver <> "\n"
-  where
-    ver :: Builder
-    ver = mconcat $ intersperse "." $ map B.intDec $ versionBranch version
+greetMsg = mconcat
+    ["chips: fish plugin manager\nversion ", B.byteString chipsVer, "\n"]
 
 sourceLine :: ByteString
 sourceLine = "\n\
