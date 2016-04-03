@@ -21,14 +21,12 @@ import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Base64.URL as B64
 
 import System.Exit
-import System.Process
 import System.IO
-import System.IO.Error
 import System.FilePath
 
 import Lib.Directory
 import Spawn (parMapIO)
-
+import Utility
 import qualified Config as C
 import Git
 
@@ -116,6 +114,7 @@ runSync Session{..} = do
     copyFileReport x y = x `copyFile` y >>
         lPutStr ["Copied ", B.stringUtf8 x, " to ", B.stringUtf8 y, "\n"]
 
+-- Take a Git URL, figure out what to do (install or upgrade), and do it.
 dealPlug :: Bool -> Text -> IO (Maybe Plugin)
 dealPlug pluginsExist url = do
     plugDirExists <- if not pluginsExist
@@ -164,40 +163,6 @@ dealPlug pluginsExist url = do
             , plugPrompt = if promptExists then Just promptPath else Nothing
             , plugRight = if rightExists then Just rightPath else Nothing
             }
-
--- utility
-
-silentCall :: String -> [String] -> IO ExitCode
-silentCall cmd args = do
-    (_, _, _, procH) <- createProcess (proc cmd args)
-        { std_in = CreatePipe
-        , std_out = CreatePipe
-        , std_err = CreatePipe
-        }
-    waitForProcess procH
-
-readProcessB :: String -> [String] -> IO ByteString
-readProcessB cmd args = do
-    (_, Just outH, _, procH) <- createProcess (proc cmd args)
-        { std_in = CreatePipe
-        , std_out = CreatePipe
-        , std_err = CreatePipe
-        }
-    readB <- B.hGetContents outH
-    _ <- waitForProcess procH
-    return readB
-
-bPutStr :: Builder -> IO ()
-bPutStr = B.hPutBuilder stdout
-
-lPutStr :: [Builder] -> IO ()
-lPutStr = bPutStr . mconcat
-
--- A function that "tries" to remove a file.
--- If the file does not exist, nothing happens.
-tryRemoveFile :: FilePath -> IO ()
-tryRemoveFile path = catchIOError (removeFile path) $
-    \ e -> unless (isDoesNotExistError e) $ ioError e
 
 -- constant
 

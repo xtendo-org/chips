@@ -16,10 +16,11 @@ cabal-version:      >=1.10
 library
   hs-source-dirs:   src
   exposed-modules:
-    Git,
-    Spawn,
+    Git
+    Spawn
     Lib
   other-modules:
+    Utility
     Config
     Lib.Directory
     Paths_chips
