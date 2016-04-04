@@ -50,9 +50,9 @@ stack install
 
 1. Run `chips`. This will create `~/.config/chips/plugin.yaml` with the default template.
 1. Edit `plugin.yaml` to include your desired plugins. For example, consider [fish-sensible] or [shellder].
-1. Run `chips` again.
+1. Run `chips; exec fish`.
 
-Any time you make changes to `plugin.yaml` or you want to update plugins, run `chips` again.
+After this, any time you make changes to `plugin.yaml` or want to update plugins, run `chips` again.
 
 ## Supported features
 

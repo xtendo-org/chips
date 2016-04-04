@@ -57,5 +57,11 @@ tryRemoveFile path = catchIOError (removeFile path) $
     \ e -> unless (isDoesNotExistError e) $ ioError e
 
 chipsVer :: ByteString
-chipsVer = LB.toStrict $ B.toLazyByteString $
+chipsVer = toByteString $
     mconcat $ intersperse "." $ map B.intDec $ versionBranch version
+
+toByteString :: Builder -> ByteString
+toByteString = LB.toStrict . B.toLazyByteString
+
+byteString :: String -> ByteString
+byteString = toByteString . B.stringUtf8

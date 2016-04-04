@@ -19,6 +19,8 @@ import qualified Data.ByteString.Base64.URL as B64
 import System.Exit
 import System.IO
 import System.FilePath
+import System.Environment (getExecutablePath)
+import System.Posix.ByteString (RawFilePath)
 
 import Lib.Directory
 import Spawn
@@ -40,6 +42,7 @@ data Session = Session
     { fishPath :: FilePath
     , chipsPath :: FilePath
     , chipsConf :: C.Config
+    , binPath :: RawFilePath
     }
 
 -- main execution functions
@@ -49,8 +52,10 @@ app = do
     bPutStr greetMsg
     fPath <- getAppDirectory "fish"
     cPath <- getAppDirectory "chips"
-    -- TODO: if plugin.yaml does not exist, create one with the template,
-    -- and add "source" in config.fish
+    execPath <- (byteString <$> getExecutablePath) >>= \ p ->
+        if "/ghc" `B.isSuffixOf` p
+        then (<> "/.local/bin/chips") . byteString <$> getHomeDirectory
+        else return p
     let yamlPath = cPath </> "plugin.yaml"
     doesFileExist yamlPath >>= \ yamlExists -> if yamlExists then do
         conf <- C.decode yamlPath
@@ -58,6 +63,7 @@ app = do
             { chipsPath = cPath
             , chipsConf = conf
             , fishPath = fPath
+            , binPath = execPath
             }
     else do
         createDirectoryIfMissing True cPath
@@ -77,7 +83,7 @@ runSync Session{..} = do
     -- Begin updating chips itself
     waitUpdate <- spawn $ do
         bPutStr "Checking update for chips...\n"
-        selfUpdate "kinoru/chips" ("chips_" <> platform)
+        selfUpdate "kinoru/chips" ("chips_" <> platform) binPath
 
     -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
@@ -91,8 +97,11 @@ runSync Session{..} = do
         listToMaybe $ mapMaybe plugRight plugResults
 
     -- Create build.fish for plugins with init.fish
-    withFile buildPath WriteMode $ \handle -> B.hPutBuilder handle $
-        mconcat $ map sourceInit $ mapMaybe plugInit plugResults
+    withFile buildPath WriteMode $ \h -> B.hPutBuilder h $ mconcat $
+        [ "alias chips \""
+        , B.byteString binPath
+        , "; exec fish\"\n"
+        ] <> map sourceInit (mapMaybe plugInit plugResults)
     lPutStr ["Build result saved at ", B.stringUtf8 buildPath, "\n"]
 
     -- Add build.fish to config.fish
