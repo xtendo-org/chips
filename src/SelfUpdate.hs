@@ -20,38 +20,29 @@ data UpdateFail
     = ExecutionFail ByteString
     | RedirectParseFail
     | AlreadyUpToDate
-    | NotCompiled
 
 updateFailMsg :: UpdateFail -> ByteString
 updateFailMsg e = case e of
     ExecutionFail errmsg -> errmsg
     RedirectParseFail -> msgRedirectParseFail
     AlreadyUpToDate -> "already up to date.\n"
-    NotCompiled -> msgNotCompiled
 
 msgRedirectParseFail :: ByteString
 msgRedirectParseFail = "\
 \failed parsing the GitHub releases page. \
 \Perhaps you need to manually upgrade.\n"
 
-msgNotCompiled :: ByteString
-msgNotCompiled = "\
-\can't replace the current executable because it is not compiled. \
-\(the current executable is GHC.)\n"
-
 -- Update the binary executable file itself.
-selfUpdate :: ByteString -> ByteString -> IO (Either UpdateFail ByteString)
-selfUpdate repo assetName = do
-    execPath <- B.pack <$> getExecutablePath
-    if "/ghc" `B.isSuffixOf` execPath
-    then return $ Left NotCompiled
-    else inspectRedirect >>= \case
-        Right latestTag
-            | latestTag == "" -> return $ Left RedirectParseFail
-            | latestTag == chipsVer -> return $ Left AlreadyUpToDate
-            | otherwise -> runUpdate latestTag execPath >>= \ e -> return
-                (e >>= const (Right latestTag))
-        Left err -> return $ Left err
+selfUpdate
+    :: ByteString -> ByteString -> RawFilePath
+    -> IO (Either UpdateFail ByteString)
+selfUpdate repo assetName execPath = inspectRedirect >>= \case
+    Right latestTag
+        | latestTag == "" -> return $ Left RedirectParseFail
+        | latestTag == chipsVer -> return $ Left AlreadyUpToDate
+        | otherwise -> runUpdate latestTag execPath >>= \ e -> return
+            (e >>= const (Right latestTag))
+    Left err -> return $ Left err
   where
     inspectRedirect :: IO (Either UpdateFail ByteString)
     inspectRedirect = getLatest >>= \case
