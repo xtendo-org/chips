@@ -1,0 +1,47 @@
+# From the Stack guide
+# http://docs.haskellstack.org/en/stable/GUIDE/#travis-with-caching
+#
+sudo: false
+
+language: c
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.local/bin
+  - $HOME/.stack
+
+matrix:
+  include:
+
+  - env: BUILD=stack ARGS="--resolver nightly"
+    compiler: ": #stack nightly"
+    addons: {apt: {packages: [libgmp-dev]}}
+
+  - env: BUILD=stack ARGS="--resolver nightly"
+    compiler: ": #stack nightly osx"
+    os: osx
+
+before_install:
+# Using compiler above sets CC to an invalid value, so unset it
+- unset CC
+
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- |
+  if [ `uname` = "Darwin" ]
+  then
+    curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
+  else
+    curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+  fi
+
+install:
+- if [ -f configure.ac ]; then autoreconf -i; fi
+- stack --no-terminal --install-ghc $ARGS test --only-dependencies
+
+script:
+- |
+  stack --no-terminal $ARGS test --haddock --no-haddock-deps
+  stack --no-terminal install
