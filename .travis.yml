@@ -1,3 +1,6 @@
+notifications:
+  email: false
+
 # From the Stack guide
 # http://docs.haskellstack.org/en/stable/GUIDE/#travis-with-caching
 #
