@@ -137,7 +137,9 @@ dealPlug pluginsExist url = do
                 else lPutStr ["Failed updating ", bDir] >> return Nothing
         else do
             lPutStr ["Failed checking update for ", bDir, ".\n"]
-            return Nothing
+            -- Yes, checking update has failed, but the plugin still needs to
+            -- be sourced! We run successWork anyway.
+            successWork
     else do
         lPutStr ["Installing ", bDir, "...\n"]
         cloneResult <- silentCall "git"
