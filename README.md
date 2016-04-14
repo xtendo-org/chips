@@ -6,7 +6,7 @@ A plugin manager for [fish].
 
 - (supposed to be) Fast. Compiled to the native machine code. Parallel installation/upgrade of plugins.
 - Minimally invasive to your `config.fish`: Adding one line is sufficient.
-- Minimum overhead to the fish shell itself. The amount of fish script to be loaded for chips to work is extremely little).
+- Minimum overhead to the fish shell itself. The amount of fish script to be loaded for chips to work is extremely little.
 - Minimum installation cost: No dependency except `git` and `curl`. chips is a single statically-compiled binary executable file.
 - Uninstallation is easy: Remove chips, `~/.config/chips`, and the line in `config.fish`, and you're clean as if you never installed chips at all.
 
