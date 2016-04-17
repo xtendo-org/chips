@@ -10,6 +10,10 @@ A plugin manager for [fish].
 - Minimum installation cost: No dependency except `git` and `curl`. chips is a single statically-compiled binary executable file.
 - Uninstallation is easy: Remove chips, `~/.config/chips`, and the line in `config.fish`, and you're clean as if you never installed chips at all.
 
+### Advantages over fisherman
+
+chips is not written by someone who abuses DMCA takedown to bully other free software projects. In fact, OMF getting shot down was the first motivation to write chips.
+
 ## Installation
 
 Current version: **chips 1.0.0** (2016-04-01)
