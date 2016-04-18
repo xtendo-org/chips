@@ -2,7 +2,7 @@ name:               chips
 version:            1.0.0
 synopsis:           A plugin manager for the fish shell
 description:        Please see README.md
-homepage:           http://github.com/kinoru/chips#readme
+homepage:           https://github.com/kinoru/chips#readme
 license:            GPL-3
 license-file:       LICENSE/chips
 author:             Kinoru
