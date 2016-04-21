@@ -23,9 +23,8 @@ Current version: **chips 1.0.0** (2016-04-01)
 Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
-curl -L \
+curl -Lo ~/.local/bin/chips --create-dirs \
     https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64 \
-    > ~/.local/bin/chips \
     ; and chmod +x ~/.local/bin/chips
 ```
 
@@ -34,9 +33,8 @@ curl -L \
 Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
-curl -L \
+curl -Lo ~/.local/bin/chips --create-dirs \
     https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx \
-    > ~/.local/bin/chips \
     ; and chmod +x ~/.local/bin/chips
 ```
 
