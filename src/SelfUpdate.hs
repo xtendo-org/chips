@@ -11,7 +11,6 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import System.IO
-import System.Environment (getExecutablePath)
 import System.Posix.ByteString
 
 import Utility
@@ -59,12 +58,12 @@ selfUpdate repo assetName execPath = inspectRedirect >>= \case
             , B.unpack $ "https://github.com/" <> repo <> "/releases/latest"
             ]
     runUpdate :: ByteString -> ByteString -> IO (Either UpdateFail ByteString)
-    runUpdate tag execPath = readProcessB "curl" ["-L", assetURL] >>= \case
+    runUpdate tag path = readProcessB "curl" ["-L", assetURL] >>= \case
         Right bin -> bracket mktmpexe (hClose . snd) $ \ (tmpPath, h) -> do
             B.hPut h bin
             hClose h
-            rename tmpPath execPath
-            return $ Right execPath
+            rename tmpPath path
+            return $ Right path
         Left x -> return $ Left $ ExecutionFail x
       where
         mktmpexe = mkstemp "/tmp/chips-"
