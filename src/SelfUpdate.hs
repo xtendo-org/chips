@@ -13,7 +13,8 @@ import qualified Data.ByteString.Char8 as B
 import System.IO
 import System.Posix.ByteString
 
-import Utility
+import RawFilePath
+import Chips
 
 data UpdateFail
     = ExecutionFail ByteString
@@ -53,12 +54,12 @@ selfUpdate repo assetName execPath = inspectRedirect >>= \case
       where
         locationHeader =
             "\nLocation: https://github.com/" <> repo <> "/releases/tag/"
-        getLatest = readProcessB "curl"
+        getLatest = readProcess "curl"
             [ "-D", "-", "-o", "/dev/null"
-            , B.unpack $ "https://github.com/" <> repo <> "/releases/latest"
+            , "https://github.com/" <> repo <> "/releases/latest"
             ]
     runUpdate :: ByteString -> ByteString -> IO (Either UpdateFail ByteString)
-    runUpdate tag path = readProcessB "curl" ["-L", assetURL] >>= \case
+    runUpdate tag path = readProcess "curl" ["-L", assetURL] >>= \case
         Right bin -> bracket mktmpexe (hClose . snd) $ \ (tmpPath, h) -> do
             B.hPut h bin
             hClose h
@@ -67,8 +68,8 @@ selfUpdate repo assetName execPath = inspectRedirect >>= \case
         Left x -> return $ Left $ ExecutionFail x
       where
         mktmpexe = mkstemp "/tmp/chips-"
-        assetURL :: String
-        assetURL = B.unpack $ mconcat
+        assetURL :: ByteString
+        assetURL = mconcat
             [ "https://github.com/" <> repo <> "/releases/download/"
             , tag
             , "/"

@@ -23,16 +23,18 @@ library
   if os(darwin)
     hs-source-dirs: src/osx
   exposed-modules:
-    Git
-    Spawn
     Lib
   other-modules:
+    ByteString
+    RawFilePath
     Utility
     Platform
     SelfUpdate
     Config
-    Lib.Directory
+    Git
+    Spawn
     Paths_chips
+    Chips
   build-depends:
     aeson >= 0.11.1.4 && < 0.12,
     base64-bytestring >= 1.0.0.1 && < 2,
