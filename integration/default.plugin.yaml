@@ -1,0 +1,8 @@
+git:
+# Add Git clone URLs for fish plugins here.
+# For example, uncomment below to enable the fish-sensible plugin.
+# - https://github.com/simnalamburt/fish-sensible
+github:
+# Add GitHub repositories for fish plugins here.
+# For example, uncomment below to enable the fish-sensible plugin.
+# - simnalamburt/fish-sensible

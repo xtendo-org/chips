@@ -1,0 +1,3 @@
+Copied shellder/fish_prompt.fish to /home/user/.config/fish/functions/fish_prompt.fish
+Build result saved at /home/user/.config/chips/build.fish
+chips is already up to date.

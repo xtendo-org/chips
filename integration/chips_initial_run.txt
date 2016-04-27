@@ -1,0 +1,5 @@
+chips: fish plugin manager
+version 1.0.0
+chips has just created the default configuration at:
+    /home/user/.config/chips/plugin.yaml
+Please edit the file and run chips again.
