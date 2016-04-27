@@ -122,14 +122,14 @@ bufferSize = 4096
 
 copyFile :: RawFilePath -> RawFilePath -> IO ()
 copyFile srcPath tgtPath = do
-    tmpPath <- bracket ropen hClose $ \ hi ->
-        bracket mktmp (hClose . snd) $ \ (tmpPath, ho) -> do
+    bracket ropen hClose $ \ hi ->
+        bracket topen hClose $ \ ho ->
             allocaBytes bufferSize $ copyContents hi ho
-            return tmpPath
     rename tmpPath tgtPath
   where
     ropen = openFd srcPath ReadOnly Nothing defaultFlags >>= fdToHandle
-    mktmp = mkstemp "/tmp/chipscp-"
+    topen = createFile tmpPath stdFileMode >>= fdToHandle
+    tmpPath = tgtPath <> ".copyFile.tmp"
     copyContents hi ho buffer = do
         count <- hGetBuf hi buffer bufferSize
         when (count > 0) $ do
