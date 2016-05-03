@@ -19,6 +19,7 @@ import qualified Data.ByteString.Base64.URL as B64
 import System.Exit
 import System.IO
 import System.Environment (getExecutablePath)
+import System.IO.Error
 
 import Spawn
 import Utility
@@ -103,7 +104,13 @@ runSync Session{..} = do
     lPutStr ["Build result saved at ", B.byteString buildPath, "\n"]
 
     -- Add build.fish to config.fish
-    configFish <- B.readFile configFishPath
+    configFish <- catchIOError (B.readFile configFishPath)
+        (\ e -> if isDoesNotExistError e
+            then do
+                B.writeFile configFishPath B.empty
+                return ""
+            else ioError e)
+
     when (snd (B.breakSubstring sourceLine configFish) == "") $ do
         B.appendFile configFishPath $ "\n# chips" <> sourceLine
         lPutStr ["Added to ", B.byteString configFishPath, "\n"]
