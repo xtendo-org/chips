@@ -108,7 +108,7 @@ runSync Session{..} = do
         Left e -> if isDoesNotExistError e
             then B.writeFile configFishPath chipsLineInConfig
             else ioError e
-        Right configFish -> when (sourceLine `B.isInfixOf` configFish) $ do
+        Right configFish -> unless (sourceLine `B.isInfixOf` configFish) $ do
             B.appendFile configFishPath $ "\n" <> chipsLineInConfig
             lPutStr ["Added to ", B.byteString configFishPath, "\n"]
 
