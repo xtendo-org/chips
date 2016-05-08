@@ -104,16 +104,13 @@ runSync Session{..} = do
     lPutStr ["Build result saved at ", B.byteString buildPath, "\n"]
 
     -- Add build.fish to config.fish
-    configFish <- catchIOError (B.readFile configFishPath)
-        (\ e -> if isDoesNotExistError e
-            then do
-                B.writeFile configFishPath B.empty
-                return ""
-            else ioError e)
-
-    when (snd (B.breakSubstring sourceLine configFish) == "") $ do
-        B.appendFile configFishPath $ "\n# chips" <> sourceLine
-        lPutStr ["Added to ", B.byteString configFishPath, "\n"]
+    tryIOError (B.readFile configFishPath) >>= \case
+        Left e -> if isDoesNotExistError e
+            then B.writeFile configFishPath chipsLineInConfig
+            else ioError e
+        Right configFish -> when (sourceLine `B.isInfixOf` configFish) $ do
+            B.appendFile configFishPath $ "\n" <> chipsLineInConfig
+            lPutStr ["Added to ", B.byteString configFishPath, "\n"]
 
     -- Finish updating chips itself
     waitUpdate >>= \case
@@ -199,6 +196,9 @@ createDirectoryIfMissing path = callProcess "mkdir" ["-p", path]
 greetMsg :: Builder
 greetMsg = mconcat
     ["chips: fish plugin manager\nversion ", B.byteString chipsVer, "\n"]
+
+chipsLineInConfig :: ByteString
+chipsLineInConfig = "# chips" <> sourceLine
 
 sourceLine :: ByteString
 sourceLine = "\n\
