@@ -43,6 +43,8 @@ library
     directory >= 1.2.2 && < 2,
     filepath >= 1.4 && < 2,
     process >= 1.2.3 && < 2,
+    semver >= 0.3.3.1 && < 0.4,
+    template-haskell >= 2.10.0.0 && < 3,
     text >= 1.2.2 && < 2,
     unix >= 2.7.1.0 && < 3,
     yaml >= 0.8.15.2 && < 0.9,

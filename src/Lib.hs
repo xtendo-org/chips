@@ -84,7 +84,12 @@ runSync Session{..} = do
     -- Begin updating chips itself
     waitUpdate <- spawn $ do
         bPutStr "Checking update for chips...\n"
-        selfUpdate "kinoru/chips" ("chips_" <> platform) binPath
+        checkUpdate "kinoru/chips" >>= \case
+            AlreadyUpToDate -> return $ Left "chips is already up to date.\n"
+            ExecutionFail err -> return $ Right $
+                "chips self-update fail: " <> err
+            UpdateNeeded tag -> runUpdate
+                "kinoru/chips" tag ("chips_" <> platform) binPath
 
     -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
@@ -114,11 +119,8 @@ runSync Session{..} = do
 
     -- Finish updating chips itself
     waitUpdate >>= \case
-        Left e -> case e of
-            AlreadyUpToDate -> B.putStr "chips is already up to date.\n"
-            x -> lPutStr
-                ["chips self-update fail: ", B.byteString $ updateFailMsg x]
-        Right tag -> lPutStr ["Updated chips to ", B.byteString tag, "\n"]
+        Right tag -> lPutStr ["Chips is updated to ", B.byteString tag, "\n"]
+        Left e -> B.putStr e
 
   where
     configFishPath = fishPath </> "config.fish"
@@ -156,7 +158,7 @@ dealPlug pluginsExist url = do
                     ["-C", dir, "reset", "--hard", "origin/master"]
                 if resetResult == ExitSuccess
                 then lPutStr [bDir, " is updated.\n"] >> successWork
-                else lPutStr ["Failed updating ", bDir] >> return Nothing
+                else lPutStr ["Failed updating ", bDir, "\n"] >> successWork
         else do
             lPutStr ["Failed checking update for ", bDir, ".\n"]
             -- Yes, checking update has failed, but the plugin still needs to
