@@ -93,7 +93,7 @@ runSync Session{..} = do
 
     -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
-        parMapIO (dealPlug pluginsExist) $ C.gitURLs chipsConf
+        iParMapIO 50000 (dealPlug pluginsExist) $ C.gitURLs chipsConf
 
     -- Register or unregister themes
     createDirectoryIfMissing functionsDir
