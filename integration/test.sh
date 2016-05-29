@@ -27,6 +27,7 @@ _assert "Run message with configuration (4)" grep -q ^Installing\ friendly-engin
 _assert "Run message with configuration (5)" diff chips_second_run_tail.txt ~/chips_config_run_tail.txt
 
 _assert "build.fish" diff build.fish ~/.config/chips/build.fish
+_assert "config.fish" diff config.fish ~/.config/fish/config.fish
 _assert "fish_prompt.fish" diff fish_prompt.fish ~/.config/fish/functions/fish_prompt.fish
 
 echo "success" > ./result.txt
