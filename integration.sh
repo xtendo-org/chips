@@ -1,8 +1,6 @@
-set -e
 echo ">>> Preparing integration test"
-stack install > /dev/null 2>&1 &
-docker build -t kinoru/chips integration > /dev/null &
-wait
+stack install > /dev/null 2>&1 || exit 1
+docker build -t kinoru/chips integration > /dev/null || exit 1
 cp ~/.local/bin/chips ./integration
 echo ">>> Test start"
 docker run -a stdout -t --name chips-integration-test -v $(pwd $(dirname $0))/integration:/home/user/integration kinoru/chips /usr/bin/bash /home/user/integration/test.sh
