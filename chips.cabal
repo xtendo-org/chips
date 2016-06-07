@@ -24,7 +24,6 @@ library
     hs-source-dirs: src/osx
   exposed-modules:
     Lib
-  other-modules:
     ByteString
     RawFilePath
     Utility
@@ -33,8 +32,9 @@ library
     Config
     Git
     Spawn
-    Paths_chips
     Chips
+  other-modules:
+    Paths_chips
   build-depends:
     aeson >= 0.11.1.4 && < 0.12,
     base64-bytestring >= 1.0.0.1 && < 2,

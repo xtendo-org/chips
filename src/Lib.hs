@@ -35,6 +35,8 @@ data Plugin = Plugin
     { plugInit :: Maybe RawFilePath
     , plugPrompt :: Maybe RawFilePath
     , plugRight :: Maybe RawFilePath
+    , plugFnc :: Maybe RawFilePath
+    , plugCpl :: Maybe RawFilePath
     }
 
 -- Session configuration container. In other words,
@@ -108,6 +110,12 @@ runSync Session{..} = do
         <> map sourceInit (mapMaybe plugInit plugResults)
     lPutStr ["Build result saved at ", B.byteString buildPath, "\n"]
 
+    -- Functions
+    forM_ (mapMaybe plugFnc plugResults) $ \srcDir -> do
+        files <- getDirectoryFilesR srcDir
+        forM_ files $ \path ->
+            path `copyFileReport` (functionsDir </> filename path)
+
     -- Add build.fish to config.fish
     tryIOError (B.readFile configFishPath) >>= \case
         Left e -> if isDoesNotExistError e
@@ -172,6 +180,7 @@ dealPlug pluginsExist url = do
             lPutStr ["Installed ", bDir, ".\n"] >> successWork
         else
             lPutStr ["Failed installing ", bDir, ".\n"] >> return Nothing
+
   where
     dir :: RawFilePath
     dir = maybe (B64.encode $ T.encodeUtf8 url) T.encodeUtf8 (gitDir url)
@@ -180,14 +189,21 @@ dealPlug pluginsExist url = do
     initFishPath = dir </> "init.fish"
     promptPath = dir </> "fish_prompt.fish"
     rightPath = dir </> "fish_right_prompt.fish"
+    fncPath = dir </> "functions"
+    cplPath = dir </> "completions"
     successWork = do
         initExists <- fileExist initFishPath
         promptExists <- fileExist promptPath
         rightExists <- fileExist rightPath
+        -- TODO(kinoru): check if these are directory or not
+        fncExists <- fileExist fncPath
+        cplExists <- fileExist cplPath
         return $ Just Plugin
             { plugInit = if initExists then Just initFishPath else Nothing
             , plugPrompt = if promptExists then Just promptPath else Nothing
             , plugRight = if rightExists then Just rightPath else Nothing
+            , plugFnc = if fncExists then Just fncPath else Nothing
+            , plugCpl = if cplExists then Just cplPath else Nothing
             }
 
 createDirectoryIfMissing :: RawFilePath -> IO ()

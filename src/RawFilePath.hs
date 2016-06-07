@@ -7,15 +7,18 @@ module RawFilePath
     , callProcess
     , callProcessSilent
     , readProcess
-    , getDirectoryContents
-    , getDirectoryContentsSuffix
+    , getDirectoryFiles
+    , getDirectoryFilesR
+    , getDirectoryFilesSuffix
     , copyFile
     , getHomeDirectory
     , getAppDirectory
     , fileExist
+    , directoryExist
     , changeWorkingDirectory
     , tryRemoveFile
     , (</>)
+    , filename
     ) where
 
 import Data.Monoid
@@ -23,7 +26,7 @@ import Control.Monad
 import Control.Exception
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString as B
 
 import System.IO
 import System.IO.Error
@@ -85,8 +88,8 @@ readProcess cmd args = do
             _ -> die cmd
         Nothing -> die cmd
 
-getDirectoryContents :: RawFilePath -> IO [RawFilePath]
-getDirectoryContents dirPath = bracket open close repeatRead
+getDirectoryFiles :: RawFilePath -> IO [RawFilePath]
+getDirectoryFiles dirPath = bracket open close repeatRead
   where
     open = openDirStream dirPath
     close = closeDirStream
@@ -96,8 +99,19 @@ getDirectoryContents dirPath = bracket open close repeatRead
             rest <- repeatRead stream
             return $ d : rest
 
-getDirectoryContentsSuffix :: RawFilePath -> ByteString -> IO [RawFilePath]
-getDirectoryContentsSuffix dirPath suffix = bracket open close repeatRead
+getDirectoryFilesR :: RawFilePath -> IO [RawFilePath]
+getDirectoryFilesR path = do
+    names <- map (path </>) . filter (\x -> x /= ".." && x /= ".") <$>
+        getDirectoryFiles path
+    inspectedNames <- mapM inspect names
+    return $ concat inspectedNames
+  where
+    inspect :: RawFilePath -> IO [RawFilePath]
+    inspect p = fmap isDirectory (getFileStatus p) >>= \i -> if i
+        then getDirectoryFilesR p else return [p]
+
+getDirectoryFilesSuffix :: RawFilePath -> ByteString -> IO [RawFilePath]
+getDirectoryFilesSuffix dirPath suffix = bracket open close repeatRead
   where
     open = openDirStream dirPath
     close = closeDirStream
@@ -153,3 +167,11 @@ die msg = B.putStr ("Error: " <> msg) *> exitFailure
 
 noHomeErrMsg :: ByteString
 noHomeErrMsg = "This application requires the $HOME environment variable.\n"
+
+directoryExist :: RawFilePath -> IO Bool
+directoryExist path = fileExist path >>= \i -> if i
+    then isDirectory <$> getFileStatus path
+    else return False
+
+filename :: RawFilePath -> RawFilePath
+filename = snd . B.spanEnd (0x2F /=)
