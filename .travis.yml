@@ -17,11 +17,11 @@ cache:
 matrix:
   include:
 
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: BUILD=stack
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
 
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: BUILD=stack
     compiler: ": #stack nightly osx"
     os: osx
 
@@ -42,9 +42,9 @@ before_install:
 
 install:
 - if [ -f configure.ac ]; then autoreconf -i; fi
-- stack --no-terminal --install-ghc $ARGS test --only-dependencies
+- stack --no-terminal --install-ghc test --only-dependencies
 
 script:
 - |
-  stack --no-terminal $ARGS test --haddock --no-haddock-deps
+  stack --no-terminal test --haddock --no-haddock-deps
   stack --no-terminal install
