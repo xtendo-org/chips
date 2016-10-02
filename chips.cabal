@@ -2,12 +2,12 @@ name:               chips
 version:            1.0.0
 synopsis:           A plugin manager for the fish shell
 description:        Please see README.md
-homepage:           https://github.com/kinoru/chips#readme
+homepage:           https://github.com/xtendo-org/chips#readme
 license:            GPL-3
 license-file:       LICENSE/chips
-author:             Kinoru
-maintainer:         xkinoru@gmail.com
-copyright:          2015 Kinoru et al.
+author:             XT
+maintainer:         e@xtendo.org
+copyright:          2015 XT et al.
 category:           Shell
 build-type:         Simple
 extra-source-files:
@@ -36,7 +36,7 @@ library
   other-modules:
     Paths_chips
   build-depends:
-    aeson >= 0.11.1.4 && < 0.12,
+    aeson >= 1.0.1.0 && < 2,
     base64-bytestring >= 1.0.0.1 && < 2,
     bytestring >= 0.10.6 && < 0.11,
     cmdargs >= 0.10.13 && < 0.11,
@@ -60,7 +60,7 @@ library
 executable chips
   hs-source-dirs:   app
   main-is:          Main.hs
-  ghc-options:      -Wall -static -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:      -Wall -static -threaded -rtsopts -optc-static -optl-pthread -optl-static
   build-depends:
     chips,
     base
@@ -89,4 +89,4 @@ test-suite chips-test
 
 source-repository head
   type:     git
-  location: https://github.com/kinoru/chips
+  location: https://github.com/xtendo-org/chips

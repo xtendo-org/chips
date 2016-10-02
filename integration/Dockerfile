@@ -1,13 +1,9 @@
-FROM base/archlinux
-MAINTAINER kinoru <xkinoru@gmail.com>
+FROM centos:7
+MAINTAINER XT <e@xtendo.org>
 
-RUN cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-RUN sed -i 's/^#Server/Server/' /etc/pacman.d/mirrorlist.backup
-RUN rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
-RUN sed -i 's/^#SigLevel = .*$/SigLevel = Never/g' /etc/pacman.conf
-RUN pacman -Sy --noconfirm
-RUN pacman -S archlinux-keyring --noconfirm
-RUN pacman -S git fish --noconfirm
+RUN yum install -y git
+RUN curl -Lo /etc/yum.repos.d/shells:fish:release:2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_7/shells:fish:release:2.repo
+RUN yum install -y fish
 
 # create user
 RUN useradd -m user

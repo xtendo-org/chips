@@ -86,12 +86,12 @@ runSync Session{..} = do
     -- Begin updating chips itself
     waitUpdate <- spawn $ do
         bPutStr "Checking update for chips...\n"
-        checkUpdate "kinoru/chips" >>= \case
+        checkUpdate "xtendo-org/chips" >>= \case
             AlreadyUpToDate -> return $ Left "chips is already up to date.\n"
             ExecutionFail err -> return $ Right $
                 "chips self-update fail: " <> err
             UpdateNeeded tag -> runUpdate
-                "kinoru/chips" tag ("chips_" <> platform) binPath
+                "xtendo-org/chips" tag ("chips_" <> platform) binPath
 
     -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
@@ -195,7 +195,7 @@ dealPlug pluginsExist url = do
         initExists <- fileExist initFishPath
         promptExists <- fileExist promptPath
         rightExists <- fileExist rightPath
-        -- TODO(kinoru): check if these are directory or not
+        -- TODO(XT): check if these are directory or not
         fncExists <- fileExist fncPath
         cplExists <- fileExist cplPath
         return $ Just Plugin
