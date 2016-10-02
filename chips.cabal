@@ -60,7 +60,10 @@ library
 executable chips
   hs-source-dirs:   app
   main-is:          Main.hs
-  ghc-options:      -Wall -static -threaded -rtsopts -optc-static -optl-pthread -optl-static
+  if os(linux)
+    ghc-options:      -Wall -static -threaded -rtsopts -optc-static -optl-pthread -optl-static
+  if os(darwin)
+    ghc-options:      -Wall -static -threaded -rtsopts
   build-depends:
     chips,
     base
