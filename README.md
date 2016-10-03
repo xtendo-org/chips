@@ -16,7 +16,7 @@ chips is not written by someone who abuses DMCA takedown to bully other free sof
 
 ## Installation
 
-Current version: **chips 1.0.0** (2016-04-01)
+Current version: **chips 1.1.0** (2016-10-03)
 
 ### GNU/Linux (x64)
 
@@ -24,7 +24,7 @@ Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
 curl -Lo ~/.local/bin/chips --create-dirs \
-    https://github.com/kinoru/chips/releases/download/1.0.0/chips_linux_x64 \
+    https://github.com/xtendo-org/chips/releases/download/1.1.0/chips_linux_x64 \
     ; and chmod +x ~/.local/bin/chips
 ```
 
@@ -34,7 +34,7 @@ Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
 curl -Lo ~/.local/bin/chips --create-dirs \
-    https://github.com/kinoru/chips/releases/download/1.0.0/chips_osx \
+    https://github.com/xtendo-org/chips/releases/download/1.1.0/chips_osx \
     ; and chmod +x ~/.local/bin/chips
 ```
 
@@ -43,7 +43,7 @@ curl -Lo ~/.local/bin/chips --create-dirs \
 Use [Stack].
 
 ```fish
-git clone --depth=1 https://github.com/kinoru/chips
+git clone --depth=1 https://github.com/xtendo-org/chips
 cd chips
 stack install
 ```
@@ -60,11 +60,12 @@ After this, any time you make changes to `plugin.yaml` or want to update plugins
 
 - Sourcing `init.fish` of plugins
 - Installing themes: Plugins that contain `fish_prompt.fish` or `fish_right_prompt.fish`
+- `functions` provided by plugins
 
-## Coming soon
+## To do
 
 - Completely purging unused plugins
-- Files under `functions` and `completions`
+- Files under `completions`
 
 ## License
 
