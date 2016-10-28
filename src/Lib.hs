@@ -139,7 +139,7 @@ runSync Session{..} = do
     fishPromptPath = functionsDir </> "fish_prompt.fish"
     fishRightPath = functionsDir </> "fish_right_prompt.fish"
     sourceInit initPath = mconcat
-        [ "source "
+        [ ". "
         , B.byteString $ pluginsDir </> initPath
         , "\n"
         ]
