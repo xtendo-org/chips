@@ -24,7 +24,7 @@ Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
 curl -Lo ~/.local/bin/chips --create-dirs \
-    https://github.com/xtendo-org/chips/releases/download/1.1.0/chips_linux_x64 \
+    https://github.com/xtendo-org/chips/releases/download/1.1.0/chips_gnulinux \
     ; and chmod +x ~/.local/bin/chips
 ```
 
