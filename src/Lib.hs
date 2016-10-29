@@ -88,10 +88,9 @@ runSync Session{..} = do
         bPutStr "Checking update for chips...\n"
         checkUpdate "xtendo-org/chips" >>= \case
             AlreadyUpToDate -> return $ Left "chips is already up to date.\n"
-            ExecutionFail err -> return $ Right $
+            ExecutionFail err -> return $ Left $
                 "chips self-update fail: " <> err
-            UpdateNeeded tag -> runUpdate
-                "xtendo-org/chips" tag ("chips_" <> platform) binPath
+            UpdateNeeded tag -> return $ Right tag
 
     -- Concurrently deal with each entry of plugin.yaml
     plugResults <- fmap catMaybes $
@@ -106,7 +105,10 @@ runSync Session{..} = do
 
     -- Create build.fish for plugins with init.fish
     B.withFile buildPath WriteMode $ \h -> B.hPutBuilder h $ mconcat $
-        ["alias chips \"" , B.byteString binPath , "; exec fish\"\n"]
+        [ "function chips; \""
+        , B.byteString binPath
+        , "\" $argv; exec fish; end\n"
+        ]
         <> map sourceInit (mapMaybe plugInit plugResults)
     lPutStr ["Build result saved at ", B.byteString buildPath, "\n"]
 
@@ -127,7 +129,14 @@ runSync Session{..} = do
 
     -- Finish updating chips itself
     waitUpdate >>= \case
-        Right tag -> lPutStr ["Chips is updated to ", B.byteString tag, "\n"]
+        Right tag -> do
+            bPutStr "Updating chips itself...\n"
+            updateResult <- runUpdate
+                "xtendo-org/chips" tag ("chips_" <> platform) binPath
+            case updateResult of
+                Right _ -> lPutStr
+                    ["chips is updated to ", B.byteString tag, "\n"]
+                Left e -> B.putStr e
         Left e -> B.putStr e
 
   where
