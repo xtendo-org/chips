@@ -69,7 +69,7 @@ runUpdate repo tag assetName path = getAsset >>= \case
     Left err -> return $ Left err
   where
     getAsset = readProcess "curl" ["-L", assetURL]
-    topen = createFile tmpPath stdFileMode >>= fdToHandle
+    topen = createFile tmpPath ownerExecuteMode >>= fdToHandle
     tmpPath = path <> ".copyFile.tmp"
     assetURL :: ByteString
     assetURL = mconcat
