@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.1.1 - 2016-11-09
+
+### Fixed
+
+- The chips executable after self-update will now have the `+x` permission.
+- Executing chips with command line arguments will not cause shell exit anymore.
+
 ## 1.1.0 - 2016-10-02
 
 ### Added
