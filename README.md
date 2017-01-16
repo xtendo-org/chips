@@ -12,7 +12,7 @@ A plugin manager for [fish].
 
 ## Installation
 
-Current version: **chips 1.1.1** (2017-01-16)
+Current version: **chips 1.1.2** (2017-01-16)
 
 ### GNU/Linux (x64)
 
@@ -20,7 +20,7 @@ Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
 curl -Lo ~/.local/bin/chips --create-dirs \
-    https://github.com/xtendo-org/chips/releases/download/1.1.1/chips_gnulinux \
+    https://github.com/xtendo-org/chips/releases/download/1.1.2/chips_gnulinux \
     ; and chmod +x ~/.local/bin/chips
 ```
 
@@ -30,7 +30,7 @@ Assuming `~/.local/bin` is in your `$PATH`:
 
 ```fish
 curl -Lo ~/.local/bin/chips --create-dirs \
-    https://github.com/xtendo-org/chips/releases/download/1.1.1/chips_osx \
+    https://github.com/xtendo-org/chips/releases/download/1.1.2/chips_osx \
     ; and chmod +x ~/.local/bin/chips
 ```
 
