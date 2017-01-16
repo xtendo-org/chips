@@ -6,6 +6,7 @@
 
 - The chips executable after self-update will now have the `+x` permission.
 - Executing chips with command line arguments will not cause shell exit anymore.
+- Now works with the version of fish included in Ubuntu 14.04 LTS.
 
 ## 1.1.0 - 2016-10-02
 
