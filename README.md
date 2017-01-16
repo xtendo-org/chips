@@ -1,4 +1,4 @@
-[chips]
+# [chips]
 
 A plugin manager for [fish].
 
