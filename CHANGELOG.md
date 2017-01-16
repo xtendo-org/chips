@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.1.2 - 2017-01-16
+
+### Fixed
+
+- [#28], Follow-up to support the version of fish included in Ubuntu 14.04 LTS in config.fish.
+
 ## 1.1.1 - 2016-11-09
 
 ### Fixed
@@ -27,3 +33,5 @@
 ## 1.0.0 - 2016-04-01
 
 - Initial release.
+
+[#28]: https://github.com/xtendo-org/chips/pull/28
