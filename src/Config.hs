@@ -36,7 +36,9 @@ deriveJSON defaultOptions ''Config
 
 decode :: FilePath -> IO Config
 decode path = Y.decodeFileEither path >>=
-    either (die . Y.prettyPrintParseException) return
+    either (\ err -> die (errMsg ++ Y.prettyPrintParseException err)) return
+  where
+    errMsg = "Failed parsing " ++ path ++ ":\n"
 
 encode :: FilePath -> Config -> IO ()
 encode = Y.encodeFile
