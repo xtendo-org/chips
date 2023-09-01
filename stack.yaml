@@ -2,5 +2,7 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
-extra-deps: []
-resolver: nightly-2016-10-29
+extra-deps:
+- git: https://github.com/xtendo-org/rawfilepath.git
+  commit: a2fc76db6c3a650febae4a79285785312e0a20f5
+resolver: lts-21.8

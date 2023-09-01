@@ -13,7 +13,7 @@ import qualified Data.Text.IO as T
 import ByteString (ByteString)
 import qualified ByteString as B
 import Data.ByteString.Builder (Builder)
-import qualified Data.ByteString.Builder as B
+import qualified Data.ByteString.Builder as B hiding (writeFile)
 import qualified Data.ByteString.Base64.URL as B64
 
 import System.Exit

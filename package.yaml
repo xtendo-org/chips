@@ -1,0 +1,94 @@
+name: chips
+version: 1.1.2
+synopsis: A plugin manager for the fish shell
+description: Please see README.md
+category: Shell
+author: XT
+maintainer: e@xtendo.org
+copyright: 2015 XT et al.
+license: GPL-3
+license-file: LICENSE/chips
+github: xtendo-org/chips
+extra-source-files:
+- README.md
+- src/gnulinux/Platform.hs
+- src/osx/Platform.hs
+default-extensions:
+- TemplateHaskell
+- OverloadedStrings
+library:
+  source-dirs: src
+  default-extensions:
+  - LambdaCase
+  - MultiWayIf
+  - RecordWildCards
+  exposed-modules:
+  - Lib
+  - ByteString
+  - RawFilePath
+  - Utility
+  - Platform
+  - SelfUpdate
+  - Config
+  - Git
+  - Spawn
+  - Chips
+  dependencies:
+  - aeson
+  - base
+  - base64-bytestring
+  - bytestring
+  - cmdargs
+  - directory
+  - filepath
+  - process
+  - semver
+  - template-haskell
+  - text
+  - unix
+  - yaml
+  when:
+  - condition: os(linux)
+    source-dirs: src/gnulinux
+  - condition: os(osx)
+    source-dirs: src/osx
+executables:
+  chips:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+    - chips
+    - base
+    when:
+    - condition: os(linux)
+      ghc-options:
+      - -Wall
+      - -static
+      - -threaded
+      - -rtsopts
+      - -optl-pthread
+      - -optc-static
+      - -optl-static
+    - condition: os(osx)
+      ghc-options:
+      - -Wall
+      - -static
+      - -threaded
+      - -rtsopts
+tests:
+  chips-test:
+    main: Spec.hs
+    source-dirs: test
+    default-extensions:
+    - LambdaCase
+    - MultiWayIf
+    - RecordWildCards
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - hspec >=2.2.2 && <3
+    - text >=1.2.2 && <2
+    - chips
+    - base
