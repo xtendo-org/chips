@@ -7,17 +7,17 @@ module SelfUpdate
 import Control.Exception
 
 import Data.Maybe
-import Data.Monoid
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text.Encoding as T
 import Data.SemVer
 
+import System.Exit
 import System.IO
 import System.Posix.ByteString
 
-import RawFilePath
 import Chips
+import RawFilePath.Process
 
 data CheckResult
     = ExecutionFail ByteString
@@ -52,10 +52,14 @@ checkUpdate repo = getLatest >>= \case
     eitherToMaybe = either (const Nothing) Just
     locationHeader =
         "\nLocation: https://github.com/" <> repo <> "/releases/tag/"
-    getLatest = readProcess "curl"
+    getLatest = do
+      (code, normalMsg, errMsg) <- readProcessWithExitCode $ proc "curl"
         [ "-D", "-", "-o", "/dev/null"
         , "https://github.com/" <> repo <> "/releases/latest"
         ]
+      case code of
+        ExitSuccess -> return $ Right normalMsg
+        _ -> return $ Left errMsg
 
 runUpdate
     :: ByteString -> ByteString -> ByteString -> RawFilePath
@@ -68,7 +72,12 @@ runUpdate repo tag assetName path = getAsset >>= \case
         return $ Right tag
     Left err -> return $ Left err
   where
-    getAsset = readProcess "curl" ["-L", assetURL]
+    getAsset = do
+      (code, asset, errMsg) <- readProcessWithExitCode $
+        proc "curl" ["-L", assetURL]
+      case code of
+        ExitSuccess -> return $ Right asset
+        _ -> return $ Left errMsg
     topen = createFile tmpPath ownerExecuteMode >>= fdToHandle
     tmpPath = path <> ".copyFile.tmp"
     assetURL :: ByteString

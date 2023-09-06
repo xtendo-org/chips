@@ -8,7 +8,6 @@ module Config
 
 import Data.Maybe
 import Data.Text (Text)
-import Data.Monoid
 
 import System.Exit
 

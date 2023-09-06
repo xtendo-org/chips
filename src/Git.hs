@@ -6,8 +6,6 @@ import Data.Char
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import System.FilePath
-
 gitDir :: Text -> Maybe Text
 gitDir repoURL = if T.length s7 < 2 || T.head s7 == '/'
     then Nothing
@@ -51,3 +49,7 @@ gitDir repoURL = if T.length s7 < 2 || T.head s7 == '/'
 
 isIn :: Char -> Text -> Bool
 isIn c = T.any (c ==)
+
+-- TODO(XT): We can probably do better than this
+isPathSeparator :: Char -> Bool
+isPathSeparator = ('/' ==)

@@ -24,8 +24,6 @@ library:
   - RecordWildCards
   exposed-modules:
   - Lib
-  - ByteString
-  - RawFilePath
   - Utility
   - Platform
   - SelfUpdate
@@ -39,9 +37,7 @@ library:
   - base64-bytestring
   - bytestring
   - cmdargs
-  - directory
-  - filepath
-  - process
+  - rawfilepath
   - semver
   - template-haskell
   - text
@@ -66,9 +62,9 @@ executables:
       - -static
       - -threaded
       - -rtsopts
-      - -optl-pthread
-      - -optc-static
-      - -optl-static
+      # - -optl-pthread
+      # - -optc-static
+      # - -optl-static
     - condition: os(osx)
       ghc-options:
       - -Wall
